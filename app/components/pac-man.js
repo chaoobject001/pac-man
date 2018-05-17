@@ -7,12 +7,17 @@ export default Component.extend(KeyboardShortcuts, {
   // need html already been rendered
   // didInsertElement runs whenever the component is loaded and put on screen 
   didInsertElement: function() {
+    this.drawWalls();
     this.drawCircle();
   },
 
   x: 1,
   y: 2,
   squareSize: 40,
+  walls: [
+    {x: 1, y: 1},
+    {x: 8, y: 5}
+  ],
 
   ctx: Ember.computed(function() {
     let canvas = document.getElementById("myCanvas");
@@ -71,11 +76,12 @@ export default Component.extend(KeyboardShortcuts, {
   movePacMan: function(direction, amount) {
     this.incrementProperty(direction, amount);
 
-    if(this.collidedWithBorder()) {
+    if(this.collidedWithBorder() || this.collidedWithWall()) {
       this.decrementProperty(direction, amount);
     }
 
     this.clearScreen();
+    this.drawWalls();
     this.drawCircle();
   },
 
@@ -91,6 +97,33 @@ export default Component.extend(KeyboardShortcuts, {
 
     return pacOutOfBounds;
   },
+
+  drawWalls: function() {
+    let squareSize = this.get('squareSize');
+    let ctx = this.get('ctx');
+    ctx.fillStyle = '#000';
+
+    let walls = this.get('walls');
+    walls.forEach( function(wall){
+      ctx.fillRect(
+        wall.x * squareSize,
+        wall.y * squareSize,
+        squareSize,
+        squareSize
+      )
+    })
+  },
+
+  collidedWithWall: function() {
+    let x = this.get('x');
+    let y = this.get('y');
+    let walls = this.get('walls');
+
+    return walls.any(function(wall){
+      return x === wall.x &&
+        y === wall.y; 
+    })
+  }
 
 });
 
