@@ -19,6 +19,15 @@ export default Component.extend(KeyboardShortcuts, {
     {x: 8, y: 5}
   ],
 
+  grid: [
+    [0,0,0,0,0,0,0,1],
+    [0,1,0,1,0,0,0,1],
+    [0,0,1,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,1]
+  ],
+
   ctx: Ember.computed(function() {
     let canvas = document.getElementById("myCanvas");
     let ctx = canvas.getContext("2d");
@@ -56,8 +65,12 @@ export default Component.extend(KeyboardShortcuts, {
     },
   },
 
-  screenWidth: 10,
-  screenHeight: 10,
+  screenWidth: Ember.computed( function() {
+    return this.get('grid.firstObject.length');
+  }), 
+  screenHeight: Ember.computed(function() {
+    return this.get('grid.length');
+  }),
 
   screenPixelWidth: Ember.computed( function() {
     return this.get('screenWidth') * this.get('squareSize');
@@ -93,8 +106,8 @@ export default Component.extend(KeyboardShortcuts, {
 
     let pacOutOfBounds = x < 0 || y < 0 ||
       x >= screenWidth ||
-      y >= screenHeight; 
-
+      y >= screenHeight;
+    
     return pacOutOfBounds;
   },
 
@@ -103,26 +116,27 @@ export default Component.extend(KeyboardShortcuts, {
     let ctx = this.get('ctx');
     ctx.fillStyle = '#000';
 
-    let walls = this.get('walls');
-    walls.forEach( function(wall){
-      ctx.fillRect(
-        wall.x * squareSize,
-        wall.y * squareSize,
-        squareSize,
-        squareSize
-      )
-    })
+    let grid = this.get('grid');
+    grid.forEach(function(row, rowIndex){
+      row.forEach(function(cell, columnIndex){
+        if(cell == 1){
+          ctx.fillRect(
+            columnIndex * squareSize,
+            rowIndex * squareSize,
+            squareSize,
+            squareSize
+          );
+        }
+      }); 
+    });
   },
 
   collidedWithWall: function() {
     let x = this.get('x');
     let y = this.get('y');
-    let walls = this.get('walls');
+    let grid = this.get('grid');
 
-    return walls.any(function(wall){
-      return x === wall.x &&
-        y === wall.y; 
-    })
+    return grid[y][x] === 1;
   }
 
 });
