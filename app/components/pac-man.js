@@ -7,8 +7,8 @@ export default Component.extend(KeyboardShortcuts, {
   // need html already been rendered
   // didInsertElement runs whenever the component is loaded and put on screen 
   didInsertElement: function() {
-    this.drawWalls();
-    this.drawCircle();
+    this.drawGrid();
+    this.drawPac();
   },
 
   x: 1,
@@ -34,10 +34,20 @@ export default Component.extend(KeyboardShortcuts, {
     return ctx;
   }),
 
-  drawCircle: function() {
-    let ctx = this.get('ctx');
+  drawPac() {
     let x = this.get('x');
     let y = this.get('y');
+    let radiusDivisor = 2;
+    this.drawCircle(x, y, radiusDivisor);
+  },
+
+  drawPellet(x, y) {
+    let radiusDivisor = 6;
+    this.drawCircle(x, y, radiusDivisor);
+  },
+
+  drawCircle: function(x, y, radiusDivisor) {
+    let ctx = this.get('ctx');
     let squareSize = this.get('squareSize');
 
     let pixelX = (x + 1/2) * squareSize;
@@ -45,7 +55,7 @@ export default Component.extend(KeyboardShortcuts, {
 
     ctx.fillStyle = '#000';
     ctx.beginPath();
-    ctx.arc(pixelX, pixelY, squareSize/2, 0, Math.PI * 2, false);
+    ctx.arc(pixelX, pixelY, squareSize/radiusDivisor, 0, Math.PI * 2, false);
     ctx.closePath();
     ctx.fill();
   },
@@ -92,10 +102,22 @@ export default Component.extend(KeyboardShortcuts, {
     if(this.collidedWithBorder() || this.collidedWithWall()) {
       this.decrementProperty(direction, amount);
     }
+    
+    this.processAnyPellets();
 
     this.clearScreen();
     this.drawGrid();
-    this.drawCircle();
+    this.drawPac();
+  },
+
+  processAnyPellets: function() {
+    let x = this.get('x');
+    let y = this.get('y');
+    let grid = this.get('grid');
+
+    if(grid[y][x] == 2) {
+      grid[y][x] = 0;
+    }
   },
 
   collidedWithBorder: function() {
@@ -120,24 +142,12 @@ export default Component.extend(KeyboardShortcuts, {
       squareSize, squareSize );
   },
 
-  drawPellet(x, y) {
-    let ctx = this.get('ctx');
-    let squareSize = this.get('squareSize');
 
-    let pixelX = (x + 1/2) * squareSize;
-    let pixelY = (y + 1/2) * squareSize;
-
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(pixelX, pixelY, squareSize/6, 0, Math.PI * 2, false);
-    ctx.closePath();
-    ctx.fill();
-  },
 
   drawGrid: function() {
     let grid = this.get('grid');
-    grid.forEach(function(row, rowIndex){
-      row.forEach(function(cell, columnIndex){
+    grid.forEach((row, rowIndex) => {
+      row.forEach((cell, columnIndex) => {
         if(cell == 1) {
           this.drawWall(columnIndex, rowIndex);
         }
