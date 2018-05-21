@@ -10,7 +10,9 @@ export default Component.extend(KeyboardShortcuts, {
     this.drawGrid();
     this.drawPac();
   },
-
+  
+  score: 0 ,
+  levelNumber: 1,
   x: 1,
   y: 2,
   squareSize: 40,
@@ -117,7 +119,28 @@ export default Component.extend(KeyboardShortcuts, {
 
     if(grid[y][x] == 2) {
       grid[y][x] = 0;
+      this.incrementProperty('score');
+      /*
+      if(this.levelComplete()) {
+         this.incrementProperty('levelNumber');
+         this.restartLevel();
+      }
+      */
     }
+  },
+
+  restartLevel: function(){
+    this.set('x', 0);
+    this.set('y', 0);
+
+    let grid = this.get('grid');
+    grid.forEach((row, rowIndex) => {
+      row.forEach((cell, columnIndex) => {
+        if (cell == 0){
+          grid[rowIndex][columnIndex] = 2;
+        }
+      });
+    });
   },
 
   collidedWithBorder: function() {
@@ -164,7 +187,21 @@ export default Component.extend(KeyboardShortcuts, {
     let grid = this.get('grid');
 
     return grid[y][x] === 1;
-  }
+  }, 
+
+  levelComlete: function() {
+    let hasPelletsLeft = false;
+    let grid = this.get('grid');
+
+    grid.forEach((row)=>{
+      row.forEach((cell)=>{
+        if(cell == 2) {
+          hasPelletsLeft = true;
+        }
+      });
+    });
+    return !hasPelletsLeft;
+  }, 
 
 });
 
