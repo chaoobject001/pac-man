@@ -106,16 +106,30 @@ export default Component.extend(KeyboardShortcuts, {
     ctx.clearRect(0, 0, this.get('screenPixelWidth'), this.get('screenPixelHeight'));
   },
 
-  movePacMan(direction) {
-    if(!this.pathBlockedInDirection(direction)) {
-      this.set('x', this.nextCoordinate('x', direction));
-      this.set('y', this.nextCoordinate('y', direction));
+  isMoving: false,
+  direction: 'stopped',
 
-      this.processAnyPellets();
+  movePacMan(direction) {
+    if(this.get('isMoving') || this.pathBlockedInDirection(direction)) {
+      // this.set('x', this.nextCoordinate('x', direction));
+      // this.set('y', this.nextCoordinate('y', direction));
+
+      // this.processAnyPellets();
+    } else {
+      this.set('direction', direction);
+      this.set('isMoving', true);
+      this.movementLoop();
     }
-    this.clearScreen();
-    this.drawGrid();
-    this.drawPac();
+    // this.clearScreen();
+    // this.drawGrid();
+    // this.drawPac();
+  },
+
+  // The movement loop
+  frameCycle: 1,
+  framesPerMovement: 30,
+  movementLoop() {
+    
   },
 
   nextCoordinate(coordinate, direction) {
