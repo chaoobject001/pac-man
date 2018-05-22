@@ -6,7 +6,7 @@ import KeyboardShortcuts from 'ember-keyboard-shortcuts/mixins/component';
 export default Component.extend(KeyboardShortcuts, {
   // need html already been rendered
   // didInsertElement runs whenever the component is loaded and put on screen 
-  didInsertElement: function() {
+  didInsertElement() {
     this.drawGrid();
     this.drawPac();
   },
@@ -20,6 +20,14 @@ export default Component.extend(KeyboardShortcuts, {
     {x: 1, y: 1},
     {x: 8, y: 5}
   ],
+
+  directions: {
+    'up': {x: 0, y: -1},
+    'down': {x: 0, y: 1},
+    'left': {x: -1, y: 0},
+    'right': {x: 1, y: 0},
+    'stopped': {x: 0, y: 0},
+  },
 
   grid: [
     [2,2,2,2,2,2,2,1],
@@ -48,7 +56,7 @@ export default Component.extend(KeyboardShortcuts, {
     this.drawCircle(x, y, radiusDivisor);
   },
 
-  drawCircle: function(x, y, radiusDivisor) {
+  drawCircle(x, y, radiusDivisor) {
     let ctx = this.get('ctx');
     let squareSize = this.get('squareSize');
 
@@ -63,17 +71,17 @@ export default Component.extend(KeyboardShortcuts, {
   },
 
   keyboardShortcuts: {
-    up: function() { 
-      this.movePacMan('y', -1 );
+    up() { 
+      this.movePacMan('up');
     },
-    down: function() { 
-      this.movePacMan('y', 1);
+    down() { 
+      this.movePacMan('down');
     },
-    left: function() { 
-      this.movePacMan('x', -1);
+    left() { 
+      this.movePacMan('left');
     },
-    right: function() { 
-      this.movePacMan('x', 1);
+    right() { 
+      this.movePacMan('right');
     },
   },
 
@@ -92,27 +100,29 @@ export default Component.extend(KeyboardShortcuts, {
     return this.get('screenHeight') * this.get('squareSize');
   }),
 
-  clearScreen: function() {
+  clearScreen() {
     let ctx = this.get('ctx');
 
     ctx.clearRect(0, 0, this.get('screenPixelWidth'), this.get('screenPixelHeight'));
   },
 
-  movePacMan: function(direction, amount) {
-    this.incrementProperty(direction, amount);
+  movePacMan(direction) {
+    if(!this.pathBlockedInDirection(direction)) {
+      this.set('x', this.nextCoordinate('x', direction));
+      this.set('y', this.nextCoordinate('y', direction));
 
-    if(this.collidedWithBorder() || this.collidedWithWall()) {
-      this.decrementProperty(direction, amount);
+      this.processAnyPellets();
     }
-    
-    this.processAnyPellets();
-
     this.clearScreen();
     this.drawGrid();
     this.drawPac();
   },
 
-  processAnyPellets: function() {
+  nextCoordinate(coordinate, direction) {
+    return this.get(coordinate) + this.get(`directions.${direction}.${coordinate}`);
+  },
+
+  processAnyPellets() {
     let x = this.get('x');
     let y = this.get('y');
     let grid = this.get('grid');
@@ -120,16 +130,15 @@ export default Component.extend(KeyboardShortcuts, {
     if(grid[y][x] == 2) {
       grid[y][x] = 0;
       this.incrementProperty('score');
-      /*
+
       if(this.levelComplete()) {
          this.incrementProperty('levelNumber');
          this.restartLevel();
       }
-      */
     }
   },
 
-  restartLevel: function(){
+  restartLevel(){
     this.set('x', 0);
     this.set('y', 0);
 
@@ -143,7 +152,7 @@ export default Component.extend(KeyboardShortcuts, {
     });
   },
 
-  collidedWithBorder: function() {
+  collidedWithBorder() {
     let x = this.get('x');
     let y = this.get('y');
     let screenHeight = this.get('screenHeight');
@@ -156,7 +165,7 @@ export default Component.extend(KeyboardShortcuts, {
     return pacOutOfBounds;
   },
 
-  drawWall: function(x, y) {
+  drawWall(x, y) {
     let ctx = this.get('ctx');
     let squareSize = this.get('squareSize');
 
@@ -167,7 +176,7 @@ export default Component.extend(KeyboardShortcuts, {
 
 
 
-  drawGrid: function() {
+  drawGrid() {
     let grid = this.get('grid');
     grid.forEach((row, rowIndex) => {
       row.forEach((cell, columnIndex) => {
@@ -181,7 +190,7 @@ export default Component.extend(KeyboardShortcuts, {
     });
   },
 
-  collidedWithWall: function() {
+  collidedWithWall() {
     let x = this.get('x');
     let y = this.get('y');
     let grid = this.get('grid');
@@ -189,7 +198,7 @@ export default Component.extend(KeyboardShortcuts, {
     return grid[y][x] === 1;
   }, 
 
-  levelComlete: function() {
+  levelComplete() {
     let hasPelletsLeft = false;
     let grid = this.get('grid');
 
