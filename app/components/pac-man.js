@@ -122,6 +122,18 @@ export default Component.extend(KeyboardShortcuts, {
     return this.get(coordinate) + this.get(`directions.${direction}.${coordinate}`);
   },
 
+  pathBlockedInDirection(direction) {
+    let cellTypeInDirection = this.cellTypeInDirection(direction);
+    return Ember.isEmpty(cellTypeInDirection) || cellTypeInDirection === 1;
+  },
+
+  cellTypeInDirection(direction) {
+    let nextX = this.nextCoordinate('x', direction);
+    let nextY = this.nextCoordinate('y', direction);
+
+    return this.get(`grid.${nextY}.${nextX}`);
+  },
+
   processAnyPellets() {
     let x = this.get('x');
     let y = this.get('y');
